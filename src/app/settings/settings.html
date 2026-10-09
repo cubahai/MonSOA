@@ -1,0 +1,105 @@
+<section class="settings-heading">
+  <p class="eyebrow">{{ i18n.t('Cài đặt') }}</p>
+  <h1>{{ i18n.t('Cài đặt cá nhân') }}</h1>
+  <p>{{ i18n.t('Tùy chỉnh ngôn ngữ, giao diện và bảo mật tài khoản.') }}</p>
+</section>
+
+@if (error) { <p class="settings-alert error" role="alert">{{ i18n.t(error) }}</p> }
+@if (message) { <p class="settings-alert success" role="status">{{ i18n.t(message) }}</p> }
+
+<div class="settings-grid">
+  <section class="settings-card">
+    <h2>{{ i18n.t('Ngôn ngữ') }} &amp; {{ i18n.t('Giao diện') }}</h2>
+    <p class="muted">{{ i18n.t('Chọn ngôn ngữ và giao diện cho tài khoản của bạn.') }}</p>
+    <form (ngSubmit)="savePreferences()">
+      <label>{{ i18n.t('Ngôn ngữ') }}
+        <select name="language" [(ngModel)]="language">
+          <option value="vi">{{ i18n.t('Tiếng Việt') }}</option>
+          <option value="en">{{ i18n.t('Tiếng Anh') }}</option>
+          <option value="zh">{{ i18n.t('Tiếng Trung') }}</option>
+        </select>
+      </label>
+      <label>{{ i18n.t('Giao diện') }}
+        <select name="theme" [(ngModel)]="theme">
+          <option value="light">{{ i18n.t('Sáng') }}</option>
+          <option value="dark">{{ i18n.t('Tối') }}</option>
+          <option value="system">{{ i18n.t('Theo hệ thống') }}</option>
+        </select>
+      </label>
+      <button type="submit" [disabled]="busy">{{ i18n.t('Lưu cài đặt') }}</button>
+    </form>
+  </section>
+
+  <section class="settings-card">
+    <h2>{{ i18n.t('Xác thực 2 lớp') }} <span class="status" [class.enabled]="status?.enabled">{{ i18n.t(status?.enabled ? 'Đã bật' : 'Chưa bật') }}</span></h2>
+    <p class="muted">{{ i18n.t('Dùng Google Authenticator để bảo vệ tài khoản bằng mã dùng một lần.') }}</p>
+    @if (!status?.enabled) {
+      @if (!setup) {
+        <form (ngSubmit)="beginSetup()">
+          <label>{{ i18n.t('Mật khẩu hiện tại') }}
+            <input type="password" name="setupPassword" [(ngModel)]="setupPassword" autocomplete="current-password" required>
+          </label>
+          <button type="submit" [disabled]="busy">{{ i18n.t('Bật xác thực 2 lớp') }}</button>
+        </form>
+      } @else {
+        <div class="setup-panel">
+          <p>{{ i18n.t('Quét mã QR bằng Google Authenticator, sau đó nhập mã 6 số để xác nhận.') }}</p>
+          @if (qrUrl) { <img class="qr-code" [src]="qrUrl" alt="Google Authenticator QR code"> }
+          <p class="secret-label">{{ i18n.t('Khóa bí mật') }}: <code>{{ setup.secret }}</code></p>
+          <form (ngSubmit)="confirmSetup()">
+            <label>{{ i18n.t('Mã xác thực') }}
+              <input type="text" name="setupCode" [(ngModel)]="setupCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+            </label>
+            <button type="submit" [disabled]="busy || setupCode.length !== 6">{{ i18n.t('Xác nhận kích hoạt') }}</button>
+          </form>
+        </div>
+      }
+    } @else {
+      <p>{{ i18n.t('Mã khôi phục còn lại') }}: <strong>{{ status?.recoveryCodesRemaining }}</strong></p>
+      <form class="security-actions" (ngSubmit)="regenerate()">
+        <label>{{ i18n.t('Mật khẩu hiện tại') }}
+          <input type="password" name="actionPassword" [(ngModel)]="actionPassword" autocomplete="current-password" required>
+        </label>
+        <label>{{ i18n.t('Mã Google Authenticator hoặc mã khôi phục') }}
+          <input type="text" name="actionCode" [(ngModel)]="actionCode" autocomplete="one-time-code" required>
+        </label>
+        <div class="button-row">
+          <button type="submit" [disabled]="busy">{{ i18n.t('Tạo lại mã khôi phục') }}</button>
+          <button type="button" class="danger" (click)="disable()" [disabled]="busy || !actionPassword || !actionCode">{{ i18n.t('Tắt xác thực 2 lớp') }}</button>
+        </div>
+      </form>
+    }
+  </section>
+
+  <section class="settings-card">
+    <h2>{{ i18n.t('Đổi mật khẩu') }}</h2>
+    <form (ngSubmit)="changePassword()">
+      <label>{{ i18n.t('Mật khẩu hiện tại') }}
+        <input type="password" name="currentPassword" [(ngModel)]="currentPassword" autocomplete="current-password" required>
+      </label>
+      <label>{{ i18n.t('Mật khẩu mới') }}
+        <input type="password" name="newPassword" [(ngModel)]="newPassword" autocomplete="new-password" minlength="12" required>
+      </label>
+      <label>{{ i18n.t('Xác nhận mật khẩu mới') }}
+        <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" autocomplete="new-password" required>
+      </label>
+      @if (status?.enabled) {
+        <label>{{ i18n.t('Mã Google Authenticator hoặc mã khôi phục') }}
+          <input type="text" name="changeCode" [(ngModel)]="changeCode" autocomplete="one-time-code" required>
+        </label>
+      }
+      <button type="submit" [disabled]="busy">{{ i18n.t('Lưu thay đổi') }}</button>
+    </form>
+  </section>
+</div>
+
+@if (recoveryCodes.length) {
+  <div class="recovery-backdrop">
+    <section class="recovery-dialog" role="dialog" aria-modal="true" [attr.aria-label]="i18n.t('Mã khôi phục')">
+      <h2>{{ i18n.t('Mã khôi phục') }}</h2>
+      <p>{{ i18n.t('Lưu các mã này ở nơi an toàn. Chúng chỉ hiển thị một lần.') }}</p>
+      <div class="codes">@for (code of recoveryCodes; track code) { <code>{{ code }}</code> }</div>
+      <button type="button" (click)="closeRecoveryCodes()">{{ i18n.t('Đã lưu mã khôi phục') }}</button>
+    </section>
+  </div>
+}

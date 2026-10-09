@@ -1,0 +1,77 @@
+@if (config) {
+  <section class="page-heading">
+    <div><p class="eyebrow">{{ i18n.t('QUẢN LÝ KÝ TÚC XÁ') }}</p><h1>{{ i18n.t(config.title) }}</h1><p class="description">{{ i18n.t(config.description) }}</p></div>
+    <button class="primary-button" type="button" (click)="openCreate()"><span>＋</span> {{ i18n.t('Thêm') }} {{ i18n.t(config.singular) }}</button>
+  </section>
+
+  @if (errorMessage) { <div class="alert error" role="alert">{{ i18n.t(errorMessage) }} <button type="button" (click)="load()">{{ i18n.t('Thử lại') }}</button></div> }
+  @if (successMessage) { <div class="alert success" role="status">{{ successMessage }} <button type="button" (click)="successMessage = ''" [attr.aria-label]="i18n.t('Đóng thông báo')">×</button></div> }
+
+  <section class="data-panel">
+    <div class="toolbar">
+      <div><h2>{{ i18n.t('Danh sách') }} {{ i18n.t(config.title) }}</h2><span>{{ visibleRows.length }} {{ i18n.t('bản ghi') }}</span></div>
+      <label class="search-box"><span>⌕</span><input type="search" [(ngModel)]="search" [placeholder]="i18n.t('Tìm kiếm trong danh sách')" [attr.aria-label]="i18n.t('Tìm kiếm trong danh sách')"></label>
+    </div>
+
+    @if (loading) {
+      <div class="empty-state">{{ i18n.t('Đang tải dữ liệu...') }}</div>
+    } @else if (!visibleRows.length) {
+      <div class="empty-state">{{ i18n.t(search ? 'Không có kết quả phù hợp.' : 'Chưa có dữ liệu. Hãy thêm mục đầu tiên.') }}</div>
+    } @else {
+      <div class="table-scroll"><table>
+        <thead><tr><th>#</th>@for (column of config.columns; track column.key) { <th>{{ i18n.t(column.label) }}</th> }<th class="actions-title">{{ i18n.t('Thao tác') }}</th></tr></thead>
+        <tbody>
+          @for (row of visibleRows; track row.id; let index = $index) {
+            <tr>
+              <td class="index-cell">{{ index + 1 }}</td>
+              @for (column of config.columns; track column.key) {
+                <td>
+                  @if (column.format === 'status') { <span class="badge" [class]="badgeClass(row[column.key])">{{ display(row, column) }}</span> }
+                  @else { {{ display(row, column) }} }
+                </td>
+              }
+              <td class="actions"><button type="button" (click)="openEdit(row)">{{ i18n.t('Sửa') }}</button><button type="button" class="danger" (click)="delete(row)">{{ i18n.t('Xóa') }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table></div>
+    }
+  </section>
+
+  @if (showDialog) {
+    <div class="modal-backdrop" (click)="closeDialog()">
+      <div class="modal" role="dialog" aria-modal="true" [attr.aria-label]="i18n.t(editingId === null ? 'Thêm' : 'Sửa') + ' ' + i18n.t(config.singular)" (click)="$event.stopPropagation()">
+        <div class="modal-header"><div><p class="eyebrow">{{ i18n.t('BIỂU MẪU QUẢN LÝ') }}</p><h2>{{ i18n.t(editingId === null ? 'Thêm' : 'Cập nhật') }} {{ i18n.t(config.singular) }}</h2></div><button type="button" class="close" (click)="closeDialog()" aria-label="Đóng">×</button></div>
+        <form #editorForm="ngForm" (ngSubmit)="save()">
+          <div class="form-grid">
+            @for (field of config.fields; track field.key) {
+              <label class="field" [class.wide]="field.type === 'textarea'">
+                <span>{{ i18n.t(field.label) }} @if (field.required !== false) { <b>*</b> }</span>
+                @if (field.type === 'select') {
+                  <select [(ngModel)]="model[field.key]" [name]="field.key" [required]="field.required !== false">
+                    <option value="">{{ i18n.t('Chọn') }} {{ i18n.t(field.label) }}</option>
+                    @for (option of field.options; track option.value) { <option [value]="option.value">{{ i18n.t(option.label) }}</option> }
+                  </select>
+                } @else if (field.type === 'lookup') {
+                  <select [(ngModel)]="model[field.key]" [name]="field.key" [required]="field.required !== false">
+                    <option [ngValue]="''">{{ i18n.t('Chọn') }} {{ i18n.t(field.label) }}</option>
+                    @for (option of lookupOptions(field); track option.id) { <option [ngValue]="option.id">{{ optionLabel(field.lookup!, option) }}</option> }
+                  </select>
+                } @else if (field.type === 'textarea') {
+                  <textarea [(ngModel)]="model[field.key]" [name]="field.key" rows="3" [required]="field.required !== false"></textarea>
+                } @else {
+                  <input [type]="field.type === 'datetime' ? 'datetime-local' : field.type" [(ngModel)]="model[field.key]"
+                    [name]="field.key" [required]="field.required !== false" [min]="field.min ?? null" [step]="field.step ?? 'any'">
+                }
+              </label>
+            }
+          </div>
+          @if (formError) { <p class="form-error" role="alert">{{ i18n.t(formError) }}</p> }
+          <div class="modal-actions"><button type="button" class="secondary-button" (click)="closeDialog()">{{ i18n.t('Hủy') }}</button><button type="submit" class="primary-button" [disabled]="editorForm.invalid || saving">{{ i18n.t(saving ? 'Đang lưu...' : 'Lưu dữ liệu') }}</button></div>
+        </form>
+      </div>
+    </div>
+  }
+} @else {
+  <section class="empty-state">{{ i18n.t('Trang quản lý không tồn tại.') }}</section>
+}
