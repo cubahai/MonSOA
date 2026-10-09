@@ -1,0 +1,33 @@
+<div class="admin-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/main"><span class="brand-mark">⌂</span><span>{{ i18n.t('QUẢN LÝ KÝ TÚC XÁ') }}</span></a>
+    <div class="section-label">{{ i18n.t('ĐIỀU HƯỚNG') }}</div>
+    <nav aria-label="Điều hướng quản lý">
+      @for (item of navigation; track item.link) {
+        <a [routerLink]="item.link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <span class="nav-icon">{{ item.icon }}</span><span>{{ i18n.t(item.label) }}</span>
+        </a>
+      }
+    </nav>
+    <div class="sidebar-bottom"><span class="status-dot"></span> {{ i18n.t('Hệ thống demo') }}</div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="mobile-brand">⌂ {{ i18n.t('QUẢN LÝ KÝ TÚC XÁ') }}</div>
+      <span class="topbar-caption">{{ i18n.t('Hệ thống quản lý ký túc xá') }}</span>
+      <div class="user-tools">
+        <div class="avatar">{{ (user?.fullName || 'A').charAt(0) }}</div>
+        <div class="user-name"><strong>{{ user?.fullName || i18n.t('Quản trị viên') }}</strong><small>{{ i18n.t('Quản trị viên') }}</small></div>
+        <button type="button" class="logout" (click)="logout()">{{ i18n.t('Đăng xuất') }}</button>
+      </div>
+    </header>
+    <nav class="mobile-nav" [attr.aria-label]="i18n.t('Điều hướng trên điện thoại')">
+      @for (item of navigation; track item.link) {
+        <a [routerLink]="item.link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ i18n.t(item.label) }}</a>
+      }
+    </nav>
+    @if (message) { <p class="shell-error">{{ i18n.t(message) }}</p> }
+    <div class="page-container"><router-outlet></router-outlet></div>
+  </div>
+</div>

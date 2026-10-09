@@ -1,0 +1,31 @@
+<section class="welcome">
+  <div><p class="eyebrow">{{ i18n.t('BẢNG ĐIỀU KHIỂN') }}</p><h1>{{ i18n.t('Tổng quan ký túc xá') }}</h1><p>{{ i18n.t('Theo dõi hoạt động và xử lý công việc hằng ngày tại một nơi.') }}</p></div>
+  <a routerLink="/manage/stays" class="welcome-action">＋ {{ i18n.t('Nhận phòng mới') }}</a>
+</section>
+
+@if (errorMessage) { <p class="error-message">{{ i18n.t(errorMessage) }}</p> }
+
+@if (summary) {
+  <section class="stats" aria-label="Thống kê ký túc xá">
+    <a routerLink="/manage/students" class="stat-card"><span class="stat-icon blue">♙</span><small>{{ i18n.t('Sinh viên') }}</small><strong>{{ summary.totalStudents }}</strong><em>{{ i18n.t('Quản lý hồ sơ') }} →</em></a>
+    <a routerLink="/manage/rooms" class="stat-card"><span class="stat-icon violet">▥</span><small>{{ i18n.t('Phòng ở') }}</small><strong>{{ summary.totalRooms }}</strong><em>{{ i18n.t('Xem phòng') }} →</em></a>
+    <a routerLink="/manage/beds" class="stat-card"><span class="stat-icon green">▧</span><small>{{ i18n.t('Giường đang dùng') }}</small><strong>{{ summary.occupiedBeds }}<span> / {{ totalBeds }}</span></strong><em>{{ occupancyPercent }}% {{ i18n.t('công suất') }}</em></a>
+    <a routerLink="/manage/maintenance" class="stat-card"><span class="stat-icon orange">⚒</span><small>{{ i18n.t('Yêu cầu bảo trì mở') }}</small><strong>{{ summary.openRequests }}</strong><em>{{ i18n.t('Xử lý yêu cầu') }} →</em></a>
+  </section>
+
+  <div class="overview-grid">
+    <section class="panel"><div class="panel-heading"><div><p class="eyebrow">{{ i18n.t('SỨC CHỨA') }}</p><h2>{{ i18n.t('Tình trạng phòng ở') }}</h2></div><a routerLink="/manage/rooms">{{ i18n.t('Xem tất cả') }} →</a></div>
+      @for (room of rooms.slice(0, 6); track room.id) {
+        <div class="room-row"><div class="room-name"><strong>{{ room['label'] }}</strong><small>{{ room['occupiedBeds'] }} / {{ room['totalBeds'] }} {{ i18n.t('giường đã dùng') }}</small></div><div class="progress"><span [style.width.%]="roomPercent(room)"></span></div><strong class="room-percent">{{ roomPercent(room) }}%</strong></div>
+      }
+    </section>
+    <div class="right-stack">
+      <section class="balance-panel"><p class="eyebrow">{{ i18n.t('TÀI CHÍNH') }}</p><h2>{{ i18n.t('Công nợ cần thu') }}</h2><strong>{{ money(summary.outstandingBalance) }}</strong><p>{{ i18n.t('Tổng số tiền chưa thanh toán từ các hóa đơn.') }}</p><a routerLink="/manage/invoices">{{ i18n.t('Xem hóa đơn') }} →</a></section>
+      <section class="panel requests"><div class="panel-heading"><div><p class="eyebrow">{{ i18n.t('CÔNG VIỆC') }}</p><h2>{{ i18n.t('Bảo trì cần xử lý') }}</h2></div><a routerLink="/manage/maintenance">{{ i18n.t('Chi tiết') }} →</a></div>
+        @if (requests.length) {
+          @for (request of requests; track request.id) { <div class="request-row"><span class="request-dot"></span><div><strong>{{ request['title'] }}</strong><small>{{ request['roomLabel'] }} · {{ priority(request['priority']) }}</small></div></div> }
+        } @else { <p class="no-requests">{{ i18n.t('Không có yêu cầu đang mở.') }}</p> }
+      </section>
+    </div>
+  </div>
+} @else if (!errorMessage) { <p class="loading">{{ i18n.t('Đang tải dữ liệu tổng quan...') }}</p> }

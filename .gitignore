@@ -4,6 +4,9 @@
 /dist
 /tmp
 /out-tsc
+/backend/**/bin/
+/backend/**/obj/
+/backend/**/.keys/
 /bazel-out
 
 # Node
@@ -12,6 +15,7 @@ npm-debug.log
 yarn-error.log
 
 # IDEs and editors
+.vs/
 .idea/
 .project
 .classpath

@@ -274,6 +274,19 @@
   transform: translateY(0);
 }
 
+.login-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.demo-hint {
+  margin: 18px 0 0;
+  text-align: center;
+  color: #596579;
+  font-size: 14px;
+}
+.back-button { display: block; margin: 16px auto 0; border: 0; background: none; color: #1976d2; cursor: pointer; font: inherit; }
+
 /* =========================
    RESPONSIVE
 ========================= */

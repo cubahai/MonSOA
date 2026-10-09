@@ -1,101 +1,37 @@
 <div class="login-page">
-
   <div class="login-container">
-
-    <div class="logo-section">
-      <div class="logo">
-        🏠
-      </div>
-
-      <h1>Quản Lý Ký Túc Xá</h1>
-      
-    </div>
-
+    <div class="logo-section"><div class="logo">🏠</div><h1>{{ i18n.t('Quản Lý Ký Túc Xá') }}</h1></div>
     <div class="login-form">
-
-      <h2>Đăng nhập</h2>
-     
-
-      <form (ngSubmit)="onLogin()">
-
-        <!-- Tài khoản -->
-        <div class="form-group">
-          <label for="username">Tài khoản</label>
-
-          <input
-            id="username"
-            type="text"
-            [(ngModel)]="username"
-            name="username"
-            placeholder="Nhập tài khoản"
-            required
-          />
-        </div>
-
-        <!-- Mật khẩu -->
-        <div class="form-group">
-          <label for="password">Mật khẩu</label>
-
-          <div class="password-container">
-
-            <input
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              [(ngModel)]="password"
-              name="password"
-              placeholder="Nhập mật khẩu"
-              required
-            />
-
-            <button
-              type="button"
-              class="show-password"
-              (click)="togglePassword()"
-            >
-              {{ showPassword ? 'Ẩn' : 'Hiện' }}
-            </button>
-
+      @if (!awaitingCode) {
+        <h2>{{ i18n.t('Đăng nhập') }}</h2>
+        <p class="login-description">{{ i18n.t('Dùng tài khoản demo để vào trang quản lý.') }}</p>
+        <form (ngSubmit)="onLogin()">
+          <div class="form-group"><label for="username">{{ i18n.t('Tài khoản') }}</label>
+            <input id="username" type="text" [(ngModel)]="username" name="username" [placeholder]="i18n.t('Nhập tài khoản')" autocomplete="username" required>
           </div>
-        </div>
-
-        <!-- Ghi nhớ -->
-        <div class="login-options">
-
-          <label class="remember-me">
-            <input
-              type="checkbox"
-              [(ngModel)]="rememberMe"
-              name="rememberMe"
-            />
-
-            <span>Ghi nhớ đăng nhập</span>
-          </label>
-
-          <a href="javascript:void(0)">
-            Quên mật khẩu?
-          </a>
-
-        </div>
-
-        <!-- Thông báo lỗi -->
-        @if (errorMessage) {
-          <div class="error-message">
-            {{ errorMessage }}
+          <div class="form-group"><label for="password">{{ i18n.t('Mật khẩu') }}</label>
+            <div class="password-container">
+              <input id="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" [placeholder]="i18n.t('Nhập mật khẩu')" autocomplete="current-password" required>
+              <button type="button" class="show-password" (click)="togglePassword()">{{ i18n.t(showPassword ? 'Ẩn' : 'Hiện') }}</button>
+            </div>
           </div>
-        }
-
-        <!-- Nút đăng nhập -->
-        <button
-          type="submit"
-          class="login-button"
-        >
-          ĐĂNG NHẬP
-        </button>
-
-      </form>
-
+          <div class="login-options"><label class="remember-me"><input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe"><span>{{ i18n.t('Ghi nhớ đăng nhập') }}</span></label></div>
+          @if (errorMessage) { <div class="error-message" role="alert">{{ i18n.t(errorMessage) }}</div> }
+          <button type="submit" class="login-button" [disabled]="loading">{{ i18n.t(loading ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP') }}</button>
+          <p class="demo-hint">{{ i18n.t('Demo') }}: <strong>admin</strong></p>
+        </form>
+      } @else {
+        <h2>{{ i18n.t('Xác thực 2 lớp') }}</h2>
+        <p class="login-description">{{ i18n.t('Nhập mã từ Google Authenticator hoặc mã khôi phục.') }}</p>
+        <form (ngSubmit)="verifyCode()">
+          <div class="form-group"><label for="code">{{ i18n.t('Mã xác thực') }}</label>
+            <input id="code" type="text" [(ngModel)]="code" name="code" [placeholder]="i18n.t('Nhập mã 6 số hoặc mã khôi phục')" autocomplete="one-time-code" required>
+          </div>
+          @if (errorMessage) { <div class="error-message" role="alert">{{ i18n.t(errorMessage) }}</div> }
+          <button type="submit" class="login-button" [disabled]="loading">{{ i18n.t('XÁC NHẬN') }}</button>
+          <button type="button" class="back-button" (click)="backToLogin()">{{ i18n.t('Quay lại đăng nhập') }}</button>
+        </form>
+      }
     </div>
-
   </div>
-
 </div>
